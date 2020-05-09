@@ -3,7 +3,6 @@ package net.puzatin.copy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class Test {
 
@@ -36,6 +35,7 @@ public class Test {
 
         Man copyMan = CopyUtils.deepCopy(man);
         SuperMan copySuperMan = CopyUtils.deepCopy(superMan);
+
 
         // результаты смотрел в отладчике
 

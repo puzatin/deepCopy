@@ -1,5 +1,7 @@
 package net.puzatin.copy;
 
+import sun.reflect.ReflectionFactory;
+
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -35,11 +37,12 @@ public class CopyUtils {
         for (Field field : fields){
 
             field.setAccessible(true);
-            if(!Modifier.isStatic(field.getModifiers())) {
+
+            if(!Modifier.isStatic(field.getModifiers()) || field.isEnumConstant()) {
                 try {
                     Object value = field.get(object);
                     if (value != null) {
-                        if (isImmutable(value.getClass())) {
+                        if (isImmutable(value.getClass()) || value.getClass().isEnum()) {
                             field.set(newInstance, value);
                         }
                         else {
@@ -59,48 +62,11 @@ public class CopyUtils {
         return newInstance;
     }
 
-
-    private static Constructor<?> getConstructorForInstance(Class<?> clazz) {
-
-        Map<Constructor<?>, Integer> map = new HashMap<>();
-        Constructor<?>[] constructors = clazz.getDeclaredConstructors();
-            for (Constructor<?> constructor : constructors) {
-                if(!Modifier.isPrivate(constructor.getModifiers()))
-                    if (constructor.getParameterCount() == 0)
-                         return constructor;
-                     else map.put(constructor, constructor.getParameterCount());
-            }
-
-            if(map.isEmpty())
-                throw new NoSuchElementException("You can't clone a singleton!");
-
-        Optional<Map.Entry<Constructor<?>, Integer>> constructor = map.entrySet().stream()
-                .min(Map.Entry.comparingByValue());
-
-        return constructor.map(Map.Entry::getKey).orElse(null);
-
-    }
-
-
-
     private static <T> T newInstance(Class<T> clazz){
 
-        Constructor<?> constructor = getConstructorForInstance(clazz);
-
-        Class<?>[] parameterTypes = constructor.getParameterTypes();
-        Object[] par = new Object[parameterTypes.length];
-
-            for (int i = 0; i < par.length; i++) {
-                if(parameterTypes[i].getTypeName().equals("boolean")){
-                    par[i] = false;
-                } else if (parameterTypes[i].isPrimitive())
-                        par[i] = 0;
-                    else par[i] = null;
-            }
-
         try {
-           return (T) constructor.newInstance(par);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            return (T) ReflectionFactory.getReflectionFactory().newConstructorForSerialization(clazz, Object.class.getConstructor()).newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
 
