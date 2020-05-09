@@ -5,9 +5,12 @@ import java.util.*;
 
 public class CopyUtils {
 
+    private CopyUtils (){
+
+    }
 
     private static final List<Class<?>> immutableClasses = List.of(String.class, Integer.class, Boolean.class, Float.class, Long.class, Double.class, Byte.class, Character.class, Short.class, UUID.class);
-
+    private static final Map<Object, Object> copied = new IdentityHashMap<>();
 
     public static <T> T deepCopy(T object) {
 
@@ -18,6 +21,8 @@ public class CopyUtils {
         if(clazz.isArray())
             newInstance = newArrayInstance(object);
                 else newInstance = (T) newInstance(clazz);
+
+        copied.put(object, newInstance);
 
         return copyFields(clazz, object, newInstance);
 
@@ -34,11 +39,16 @@ public class CopyUtils {
                 try {
                     Object value = field.get(object);
                     if (value != null) {
-                        if (isImmutable(value.getClass()))
+                        if (isImmutable(value.getClass())) {
                             field.set(newInstance, value);
+                        }
                         else {
-                            Object valueCopy = deepCopy(value);
-                            field.set(newInstance, valueCopy);
+                            if (isCopied(value)) {
+                                field.set(newInstance, copied.get(value));
+                            } else {
+                                Object valueCopy = deepCopy(value);
+                                field.set(newInstance, valueCopy);
+                            }
                         }
                     }
                 } catch (IllegalAccessException e) {
@@ -117,8 +127,12 @@ public class CopyUtils {
                 if (isImmutable(element.getClass())) {
                     Array.set(newInstance, i, Array.get(o, i));
                 } else {
-                    Object copyElement = deepCopy(element);
-                    Array.set(newInstance, i, copyElement);
+                    if(isCopied(element)){
+                        Array.set(newInstance, i, copied.get(element));
+                    } else {
+                        Object copyElement = deepCopy(element);
+                        Array.set(newInstance, i, copyElement);
+                    }
                 }
             }
         }
@@ -133,6 +147,15 @@ public class CopyUtils {
             if(clazz.equals(claz))
                 return true;
         }
+        return false;
+    }
+
+    private static boolean isCopied(Object o) {
+        for (Object ob : copied.keySet()) {
+            if (o == ob)
+                return true;
+        }
+
         return false;
     }
 
