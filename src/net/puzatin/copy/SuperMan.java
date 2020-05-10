@@ -10,10 +10,17 @@ class SuperMan {
     private List<Object> objects;
     private SuperMan superMan;
     private int[] arr;
+    private final Child child = new Child();
+    private Object[] o = new Object[] {new Object(), new Object()};
+
 
 
     public SuperMan(){
 
+    }
+
+    public Child getChild() {
+        return child;
     }
 
 

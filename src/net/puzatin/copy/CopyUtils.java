@@ -33,32 +33,34 @@ public class CopyUtils {
 
     private static <T> T copyFields(Class<?> clazz, T object, T newInstance) {
 
-        Field[] fields = clazz.getDeclaredFields();
-        for (Field field : fields){
+        do {
+            Field[] fields = clazz.getDeclaredFields();
+            for (Field field : fields) {
 
-            field.setAccessible(true);
+                field.setAccessible(true);
 
-            if(!Modifier.isStatic(field.getModifiers()) || field.isEnumConstant()) {
-                try {
-                    Object value = field.get(object);
-                    if (value != null) {
-                        if (isImmutable(value.getClass()) || value.getClass().isEnum()) {
-                            field.set(newInstance, value);
-                        }
-                        else {
-                            if (isCopied(value)) {
-                                field.set(newInstance, copied.get(value));
+                if (!Modifier.isStatic(field.getModifiers()) || field.isEnumConstant()) {
+                    try {
+                        Object value = field.get(object);
+                        if (value != null) {
+                            if (isImmutable(value.getClass()) || value.getClass().isEnum()) {
+                                field.set(newInstance, value);
                             } else {
-                                Object valueCopy = deepCopy(value);
-                                field.set(newInstance, valueCopy);
+                                if (isCopied(value)) {
+                                    field.set(newInstance, copied.get(value));
+                                } else {
+                                    Object valueCopy = deepCopy(value);
+                                    field.set(newInstance, valueCopy);
+                                }
                             }
                         }
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
                     }
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
                 }
             }
-        }
+        } while ((clazz = clazz.getSuperclass()) != Object.class && clazz != null);
+
         return newInstance;
     }
 

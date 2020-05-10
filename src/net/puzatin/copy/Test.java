@@ -13,6 +13,8 @@ public class Test {
         books.add("two");
         books.add("three");
         List<Object> list = new ArrayList<>();
+
+        Child child = new Child();
         SuperMan superMan = new SuperMan();
         Man man = new Man("Vasya", 33, books);
 
@@ -35,7 +37,7 @@ public class Test {
 
         Man copyMan = CopyUtils.deepCopy(man);
         SuperMan copySuperMan = CopyUtils.deepCopy(superMan);
-
+        Child copyChild = CopyUtils.deepCopy(child);
 
         // результаты смотрел в отладчике
 
