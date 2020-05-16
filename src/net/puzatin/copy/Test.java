@@ -33,6 +33,7 @@ public class Test {
         superMan.setObjects(list);
         superMan.setArr(arr);
         superMan.setSuperMan(superMan);
+        superMan.setCountry(Country.GERMANY);
 
 
         Man copyMan = CopyUtils.deepCopy(man);

@@ -12,6 +12,7 @@ public class CopyUtils {
     }
 
     private static final List<Class<?>> immutableClasses = List.of(String.class, Integer.class, Boolean.class, Float.class, Long.class, Double.class, Byte.class, Character.class, Short.class, UUID.class);
+    // IdentityHashMap т.к нам нужно сравнивать объекты по ссылкам, а не по equals
     private static final Map<Object, Object> copied = new IdentityHashMap<>();
 
     public static <T> T deepCopy(T object) {
@@ -21,8 +22,8 @@ public class CopyUtils {
         T newInstance;
 
         if(clazz.isArray())
-            newInstance = newArrayInstance(object);
-                else newInstance = (T) newInstance(clazz);
+            newInstance = newArrayInstance(clazz ,object);
+                else newInstance = (T) newEmptyInstance(clazz);
 
         copied.put(object, newInstance);
 
@@ -39,7 +40,7 @@ public class CopyUtils {
 
                 field.setAccessible(true);
 
-                if (!Modifier.isStatic(field.getModifiers()) || field.isEnumConstant()) {
+                if (!Modifier.isStatic(field.getModifiers())) {
                     try {
                         Object value = field.get(object);
                         if (value != null) {
@@ -64,21 +65,21 @@ public class CopyUtils {
         return newInstance;
     }
 
-    private static <T> T newInstance(Class<T> clazz){
+    private static <T> T newEmptyInstance(Class<T> clazz){
+
+        T newEmptyInstance = null;
 
         try {
-            return (T) ReflectionFactory.getReflectionFactory().newConstructorForSerialization(clazz, Object.class.getConstructor()).newInstance();
+            newEmptyInstance = (T) ReflectionFactory.getReflectionFactory().newConstructorForSerialization(clazz, Object.class.getConstructor()).newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
 
-        return null;
+        return newEmptyInstance;
     }
 
 
-    private static <T> T newArrayInstance(T o){
-
-        Class<?> clazz = o.getClass();
+    private static <T> T newArrayInstance(Class<?> clazz, T o){
 
         int length = Array.getLength(o);
         T newInstance = (T) Array.newInstance(clazz.componentType(), length);

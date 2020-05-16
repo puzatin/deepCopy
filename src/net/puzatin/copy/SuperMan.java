@@ -9,6 +9,7 @@ class SuperMan {
     private int age;
     private List<Object> objects;
     private SuperMan superMan;
+    private Country country;
     private int[] arr;
     private final Child child = new Child();
     private Object[] o = new Object[] {new Object(), new Object()};
@@ -17,6 +18,14 @@ class SuperMan {
 
     public SuperMan(){
 
+    }
+
+    public Country getCountry() {
+        return country;
+    }
+
+    public void setCountry(Country country) {
+        this.country = country;
     }
 
     public Child getChild() {
